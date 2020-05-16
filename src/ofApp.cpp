@@ -135,7 +135,7 @@ void ofApp::setup() {
 		ofExit(0);
 	}
 
-	//Camera setup
+	//Camera setup - Jessica Hoang
 
 	trackingCam.setPosition(ofVec3f(0, 10, 30));
 	trackingCam.lookAt(lander.getPosition());
@@ -161,7 +161,7 @@ void ofApp::setup() {
 	gravityForce2 = new GravityForce(ofVec3f(0, 0, 0));
 	thrustForceLunar2 = new ThrustForce(ofVec3f(10, 0, 0));
 
-	//Emitter settings
+	//Emitter settings - Jessica Hoang
 	emitter.setVelocity(ofVec3f(0, 0, 0));
 	emitter.setOneShot(true);
 	emitter.setEmitterType(RadialEmitter);
@@ -184,7 +184,7 @@ void ofApp::setup() {
 	engineEmitter2.setPosition(lander.getPosition() + ofVec3f(4, -3, -2));
 	engineEmitter2.setEmitterType(DiscEmitter);
 
-	//Adding forces
+	//Adding forces - Jessica Hoang
 	emitter.sys->addForce(turbForce);
 	emitter.sys->addForce(gravityForce);
 	emitter.sys->addForce(thrustForceLunar);
@@ -201,7 +201,7 @@ void ofApp::setup() {
 
 	emitter.spawn(ofGetElapsedTimef());
 	
-	//Setup game elements
+	//Setup game elements - Jessica Hoang
 	gasoline = 1000;
 	score = 0;
 	bGameActive = false;
@@ -216,6 +216,7 @@ void ofApp::setup() {
 //
 void ofApp::update() {
 
+	// Jessica Hoang
 	if (bGameActive && win)
 	{
 		bGameActive = false;
@@ -228,7 +229,7 @@ void ofApp::update() {
 	}
 	if (bGameActive)
 	{
-		//update gravity
+		//update gravity - Jessica Hoang
 		if (!bCollision)
 		{
 			gravityForce->set(ofVec3f(0, -gravity, 0));
@@ -429,7 +430,7 @@ void ofApp::draw() {
 	ofDisableDepthTest();
 	theCam->end();
 
-	//Messages
+	//Messages - Jessica Hoang
 	gui.draw();
 	string str = "Frame Rate: " + std::to_string(ofGetFrameRate());
 	ofSetColor(ofColor::white);
@@ -618,7 +619,7 @@ void ofApp::checkLeftCollision()
 
 }
 
-//depending on key pressed will result in an action
+//depending on key pressed will result in an action - Jessica Hoang
 void ofApp::keyPressed(int key) {
 
 	switch (key) {
