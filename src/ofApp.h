@@ -42,7 +42,7 @@ public:
 	void playEngineSound(); 
 	bool bSoundPlaying; 
 	ofSoundPlayer engineSound;
-
+	ofSoundPlayer bgSound;
 	void loadVbo();
 	// textures
 	ofTexture  particleTex;
@@ -53,17 +53,16 @@ public:
 	ofColor particleColor;
 
 	void toggleSelectTerrain();
-	void toggleDrawBoundingBox();  
+
 	void setCameraTarget();
 	bool  doPointSelection();
 	void drawBox(const Box &box);
-	void drawMovingBox(const Box &box, const ofVec3f &offset); 
 	Box meshBounds(const ofMesh &);
 	void subDivideBox8(const Box &b, vector<Box> & boxList);
 
 	bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 
-	Box boundingBox;
+	Box boundingBox , boundingBox2, boundingBox3;
 	Box landerBox;         
 	ofxAssimpModelLoader  rover, terrain;
 
@@ -91,8 +90,10 @@ public:
 	const float selectionRange = 4.0;
 
 	ofEasyCam cam;
-	ofxAssimpModelLoader lander, landerTextured; 
+	ofxAssimpModelLoader lander; 
 	ofLight keyLight;
+	ofLight rimLight;
+	ofLight fillLight;
 	ofImage backgroundImage;
 	ofCamera *theCam = NULL;
 	ofCamera trackingCam; 
@@ -120,9 +121,15 @@ public:
 
 	ImpulseForce* impulseForce;
 
+	float gasoline;
+	bool bGameActive;
+	bool showLostMessage;
+	bool win;
+	bool showWinMessage;
+
 	ofxPanel gui;
 	ofxFloatSlider gravity;
 	ofxFloatSlider restitution;
-
-
+	int score;
+	float temp;
 };

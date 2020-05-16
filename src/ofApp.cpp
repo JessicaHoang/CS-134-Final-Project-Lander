@@ -64,16 +64,20 @@ void ofApp::setup() {
 	bCtrlKeyDown = false;
 	bLanderLoaded = false;
 
+	//load booleans
 	bRoverLoaded = false;
 	bTerrainSelected = true;
 	bCollision = false;
 	bSideCollision = false;
 	bSoundPlaying = false;
-	bDrawBounding = false;
+
 	
 	engineSound.load("sounds/engine.mp3");
 	engineSound.setLoop(true);
 
+	bgSound.load("sounds/comet.mp3");
+	bgSound.setLoop(true);
+	bgSound.play();
 	cam.setDistance(15);
 	cam.setNearClip(.2);
 	cam.setFov(66);
@@ -97,8 +101,11 @@ void ofApp::setup() {
 	//set lighting
 	initLightingAndMaterials();
 
+	//set terrain and bounding box
 	terrain.loadModel("geo/mars-5k.obj");
 	terrain.setScaleNormalization(false);
+
+	
 
 	boundingBox = meshBounds(terrain.getMesh(0));
 	cout << "number of meshes land: " << terrain.getMeshCount() << endl;
@@ -107,17 +114,17 @@ void ofApp::setup() {
 
 	
 
-	// create KdTree for terrain
+	// create Octree for terrain
 	//
 	//Build octree with 9 levels
 	octree.create(terrain.getMesh(0), 7);
-
 	terrain.setRotation(0, 180, 0, 0, 1);
-	if (lander.loadModel("geo/lander.obj"))
+	if (lander.loadModel("geo/Rocket.obj"))
 	{
 		lander.setScaleNormalization(false);
 		lander.setScale(1, 1, 1);
-		lander.setPosition(0, 20, -10);
+		lander.setPosition(0, 150, 0);
+		lander.setRotation(0, 90, 0, 0, 1);
 		landerBox = meshBounds(lander.getMesh(0));
 		bLanderLoaded = true;
 		
@@ -129,18 +136,15 @@ void ofApp::setup() {
 	}
 
 	//Camera setup
-	trackingCam.setNearClip(0.1);
-	trackingCam.setFov(75.5);
-	trackingCam.setPosition(ofVec3f(0, 20, 40));
+
+	trackingCam.setPosition(ofVec3f(0, 10, 30));
 	trackingCam.lookAt(lander.getPosition());
 
-	downCam.setNearClip(3.3);
-	downCam.setFov(65.5);
+	
 	downCam.setPosition(lander.getPosition());
 	downCam.lookAt(lander.getPosition() * ofVec3f(1, 0, 1));
 
-	frontCam.setNearClip(4.8);
-	frontCam.setFov(65.5);
+
 	frontCam.setPosition(lander.getPosition());
 	float forward = lander.getPosition().x == 0 ? 1 : lander.getPosition().x;
 	frontCam.lookAt(ofVec3f(abs(forward), lander.getPosition().y, lander.getPosition().z) * ofVec3f(-2, 1, 1));
@@ -197,6 +201,13 @@ void ofApp::setup() {
 
 	emitter.spawn(ofGetElapsedTimef());
 	
+	//Setup game elements
+	gasoline = 1000;
+	score = 0;
+	bGameActive = false;
+	showLostMessage = false;
+	showWinMessage = false;
+	win = false;
 	
 }
 
@@ -204,63 +215,77 @@ void ofApp::setup() {
 // incrementally update scene (animation)
 //
 void ofApp::update() {
-	//update of forces (with sliders) 
 
-	if (!bCollision)
+	if (bGameActive && win)
 	{
-		gravityForce->set(ofVec3f(0, -gravity, 0));
+		bGameActive = false;
+		showWinMessage = true;
 	}
-
-	//Update engine emitters
-	emitter.sys->update();
-	if (emitter.sys->particles.size() > 0)
+	if (bGameActive && gasoline <= 0)
 	{
-		lander.setPosition(emitter.sys->particles[0].position.x, emitter.sys->particles[0].position.y, emitter.sys->particles[0].position.z);
+		bGameActive = false;
+		showLostMessage = true;
 	}
-	engineEmitter.setPosition(lander.getPosition() + ofVec3f(4, -3, 2));
-	engineEmitter.update();
-
-	engineEmitter2.setPosition(lander.getPosition() + ofVec3f(4, -3, 2));
-	engineEmitter2.update();
-
-	//check bottom collision if lander is moving downwards
-	if (emitter.sys->particles[0].velocity.y < -400)
+	if (bGameActive)
 	{
-		checkCollision();
+		//update gravity
+		if (!bCollision)
+		{
+			gravityForce->set(ofVec3f(0, -gravity, 0));
+		}
+
+		//Update engine emitters
+		emitter.sys->update();
+		if (emitter.sys->particles.size() > 0)
+		{
+			lander.setPosition(emitter.sys->particles[0].position.x, emitter.sys->particles[0].position.y, emitter.sys->particles[0].position.z);
+		}
+		engineEmitter.setPosition(lander.getPosition() + ofVec3f(4, -3, 2));
+		engineEmitter.update();
+
+		engineEmitter2.setPosition(lander.getPosition() + ofVec3f(4, -3, 2));
+		engineEmitter2.update();
+
+		//check bottom collision if lander is moving downwards
+		if (emitter.sys->particles[0].velocity.y < .6)
+		{
+			checkCollision();
+		}
+
+		//Check front bumper
+		if (emitter.sys->particles[0].velocity.x < -0.6)
+		{
+			checkFrontCollision();
+		}
+
+		//Check back bumper
+		if (emitter.sys->particles[0].velocity.x > .6)
+		{
+			checkBackCollision();
+		}
+
+		//Check left bumper
+		if (emitter.sys->particles[0].velocity.z < -0.6)
+		{
+			checkLeftCollision();
+		}
+
+		//Check right bumper
+		if (emitter.sys->particles[0].velocity.z > 0.6)
+		{
+			checkRightCollision();
+		}
+
+		//Update camera position
+		trackingCam.lookAt(lander.getPosition());
+		downCam.setPosition(lander.getPosition());
+		downCam.lookAt(lander.getPosition() * ofVec3f(1, 0, 1));
+
+		frontCam.setPosition(lander.getPosition());
+		float forward = lander.getPosition().x == 0 ? 1 : lander.getPosition().x;
+		frontCam.lookAt(ofVec3f(abs(forward), lander.getPosition().y, lander.getPosition().z) * ofVec3f(-2, 1, 1));
 	}
-
-	//Check front bumper
-	if (emitter.sys->particles[0].velocity.x < -0.6)
-	{
-		checkFrontCollision();
-	}
-
-	//Check back bumper
-	if (emitter.sys->particles[0].velocity.x > .6)
-	{
-		checkBackCollision();
-	}
-
-	//Check left bumper
-	if (emitter.sys->particles[0].velocity.z < -0.6)
-	{
-		checkLeftCollision();
-	}
-
-	//Check right bumper
-	if (emitter.sys->particles[0].velocity.z > 0.6)
-	{
-		checkRightCollision();
-	}
-
-	//Update camera position
-	trackingCam.lookAt(lander.getPosition());
-	downCam.setPosition(lander.getPosition());
-	downCam.lookAt(lander.getPosition() * ofVec3f(1, 0, 0));
-
-	frontCam.setPosition(lander.getPosition());
-	float forward = lander.getPosition().x == 0 ? 1 : lander.getPosition().x;
-	frontCam.lookAt(ofVec3f(abs(forward), lander.getPosition().y, lander.getPosition().z) * ofVec3f(-2, 1, 1));
+	
 
 }
 
@@ -347,7 +372,7 @@ void ofApp::draw() {
 
 	ofNoFill();
 	ofSetColor(ofColor::white);
-	//	drawBox(boundingBox);
+	
 	
 		// debug - check first node to make sure bbox is correct
 		//
@@ -355,6 +380,10 @@ void ofApp::draw() {
 	kdtree.draw(kdtree.root, levels, 1);
 	*/
 	//////////////
+	emitter.sys->draw();
+	engineEmitter.sys->draw();
+	engineEmitter2.sys -> draw();
+	
 	glDepthMask(GL_FALSE);
 
 	ofSetColor(particleColor);
@@ -386,15 +415,21 @@ void ofApp::draw() {
 	
 	ofNoFill();
 	ofSetColor(ofColor::white);
+	//draw bounding boxes for lander
 	drawBox(boundingBox);
-	if (bDrawBounding) {
-		drawMovingBox(landerBox, lander.getPosition());
-	}
-
+	Box b2 = Box(boundingBox.parameters[0] + Vector3(50, 0, 0), boundingBox.parameters[1] + Vector3(50, 0, 0));
+	drawBox(b2);
+	Box b3 = Box(boundingBox.parameters[0] + Vector3(-50, 0, 0), boundingBox.parameters[1] + Vector3(-50, 0, 0));
+	drawBox(b3);
+	
+	keyLight.draw();
+	rimLight.draw();
+	fillLight.draw();
 	ofPopMatrix();
 	ofDisableDepthTest();
 	theCam->end();
 
+	//Messages
 	gui.draw();
 	string str = "Frame Rate: " + std::to_string(ofGetFrameRate());
 	ofSetColor(ofColor::white);
@@ -404,6 +439,43 @@ void ofApp::draw() {
 	ofSetColor(ofColor::white);
 	ofDrawBitmapString(alt, ofGetWindowWidth()- 205, 30);
 
+	string gas = "Gasoline: " + std::to_string(gasoline);
+	ofSetColor(ofColor::white);
+	ofDrawBitmapString(gas, ofGetWindowWidth() - 225, 40);
+
+	string score1 = "Score: " + std::to_string(score);
+	ofSetColor(ofColor::white);
+	ofDrawBitmapString(score1, ofGetWindowWidth() - 225, 50);
+
+	if (showLostMessage)
+	{
+		string lose = "Game Over";
+		ofSetColor(ofColor::white);
+		ofDrawBitmapString(lose, ofGetWindowWidth()/2, ofGetWindowHeight() / 2);
+
+		string score2 = "Final Score: " + std::to_string(score);
+		ofSetColor(ofColor::white);
+		ofDrawBitmapString(score2, ofGetWindowWidth() / 2, ofGetWindowHeight() / 2 + 20);
+
+	}
+
+	if (showWinMessage)
+	{
+		string winner = "Mission complete! Try traveling to a different spot.";
+		ofSetColor(ofColor::white);
+		ofDrawBitmapString(winner, ofGetWindowWidth() / 2, ofGetWindowHeight() / 2);
+
+		string again = "Press p to play again: ";
+		ofSetColor(ofColor::white);
+		ofDrawBitmapString(again, ofGetWindowWidth() / 2, ofGetWindowHeight() / 2 + 20);
+	}
+
+	if (!bGameActive && !win)
+	{
+		string title = "Press p to play";
+		ofSetColor(ofColor::white);
+		ofDrawBitmapString(title, ofGetWindowWidth() / 2, ofGetWindowHeight() / 2);
+	}
 }
 
 // 
@@ -433,6 +505,7 @@ void ofApp::drawAxis(ofVec3f location) {
 	ofPopMatrix();
 }
 
+//Check if a collision occured between a box and lander
 void ofApp:: checkCollision()
 {
 	Vector3 center = landerBox.center();
@@ -448,18 +521,33 @@ void ofApp:: checkCollision()
 		bCollision = true;
 		cout << "Lander has intersected" << ofGetElapsedTimeMillis() << endl;
 		impulseForce->apply(-60 * v * (restitution + 1));
+		score = score + 2;
 		if (v.y <= 0 && v.y >= -.1)
 		{
 			gravityForce->set(ofVec3f(0, 0, 0));
 			emitter.sys->particles[0].velocity.set(0, 0, 0);
 			cout << "It is in" << endl;
+			lander.setPosition(0, 150, 0);
+			emitter.sys->reset();
+			engineEmitter.sys->reset();
+			engineEmitter.start();
+			engineEmitter2.sys->reset();
+			engineEmitter2.start();
+			
+			gasoline += 200;
+			score = score + 100;
+			bCollision = false;
+			win = true;
 		}
 
 		cout << "Gravity: " << gravityForce->gravity.y << "Velocity:" << v.y << endl;
 		turbForce->set(ofVec3f(0, 0, 0), ofVec3f(0, 0, 0)); //Stop ship movement
 	}
+
+	
 }
 
+//check for front collision
 void ofApp::checkFrontCollision()
 {
 	Vector3 center = landerBox.center();
@@ -473,8 +561,10 @@ void ofApp::checkFrontCollision()
 	{
 		impulseForce->apply(-60 * v * (restitution + 1));
 	}
+
 }
 
+//check for back collision
 void ofApp::checkBackCollision()
 {
 	Vector3 center = landerBox.center();
@@ -490,8 +580,10 @@ void ofApp::checkBackCollision()
 		impulseForce->apply(-60 * v * (restitution + 1));
 
 	}
+	
 }
 
+//check for right collision
 void ofApp::checkRightCollision()
 {
 	Vector3 center = landerBox.center();
@@ -505,8 +597,10 @@ void ofApp::checkRightCollision()
 		impulseForce->apply(-60 * v * (restitution + 1));
 
 	}
+
 }
 
+//Check for left collision of lander
 void ofApp::checkLeftCollision()
 {
 	Vector3 center = landerBox.center();
@@ -520,11 +614,36 @@ void ofApp::checkLeftCollision()
 		impulseForce->apply(-60 * v * (restitution + 1));
 
 	}
+	
 
 }
+
+//depending on key pressed will result in an action
 void ofApp::keyPressed(int key) {
 
 	switch (key) {
+	case 'd':     // rotate spacecraft clockwise (about Y (UP) axis)
+		temp += 10;
+		lander.setRotation(0, temp, 0, 1, 0);
+		break;
+	case 'a':     // rotate spacecraft counter-clockwise (about Y (UP) axis)
+		temp -= 10;
+		lander.setRotation(0, temp, 0, 1, 0);
+		break;
+	case 'p':
+		if (!bGameActive && !win && !showLostMessage)
+		{
+			bGameActive = true;
+		}
+		else if (!bGameActive && win)
+		{
+			win = false;
+			showWinMessage = false;
+			bGameActive = true;
+			
+		}
+		break;
+
 	case 'C':
 	case 'c':
 		if (cam.getMouseInputEnabled()) cam.disableMouseInput();
@@ -574,7 +693,7 @@ void ofApp::keyPressed(int key) {
 		theCam = &frontCam;
 	case 'l':
 		theCam = &downCam;
-	case ';':
+	case 'm':
 		theCam = &trackingCam;
 		break;
 	case OF_KEY_UP:
@@ -582,7 +701,7 @@ void ofApp::keyPressed(int key) {
 		bSoundPlaying = true;
 		bCollision = false;
 		emitter.sys->reset();
-		impulseForce->set(ofVec3f(0, 0, 0)); //Reset the impulse force
+		impulseForce->set(ofVec3f(0, 0, 0)); //Reset impulse
 		turbForce->set(ofVec3f(-2, -2, -2), ofVec3f(2, 2, 2)); 
 		if (bCtrlKeyDown) {
 			thrustForceLunar->set(ofVec3f(0, 0, 3));
@@ -594,13 +713,14 @@ void ofApp::keyPressed(int key) {
 		engineEmitter.start();
 		engineEmitter2.sys->reset();
 		engineEmitter2.start();
+		gasoline--;
 		break;
 	case OF_KEY_DOWN:
 		if (!bCollision) {
 			playEngineSound();
 			bSoundPlaying = true;
 			emitter.sys->reset();
-			impulseForce->set(ofVec3f(0, 0, 0)); //Reset the impulse force
+			impulseForce->set(ofVec3f(0, 0, 0)); //Reset impulse
 			turbForce->set(ofVec3f(-2, -2, -2), ofVec3f(2, 2, 2)); 
 			if (bCtrlKeyDown) {
 				thrustForceLunar->set(ofVec3f(0, 0, -3));
@@ -612,31 +732,34 @@ void ofApp::keyPressed(int key) {
 			engineEmitter.start();
 			engineEmitter2.sys->reset();
 			engineEmitter2.start();
+			gasoline--;
 		}
 		break;
 	case OF_KEY_LEFT:
 		playEngineSound();
 		bSoundPlaying = true;
 		emitter.sys->reset();
-		impulseForce->set(ofVec3f(0, 0, 0)); //Reset the impulse force
+		impulseForce->set(ofVec3f(0, 0, 0)); //Reset impulse
 		thrustForceLunar->set(ofVec3f(-3, 0, 0));
 		if (!bCollision) { turbForce->set(ofVec3f(-2, -2, -2), ofVec3f(2, 2, 2)); }
 		engineEmitter.sys->reset();
 		engineEmitter.start();
 		engineEmitter2.sys->reset();
 		engineEmitter2.start();
+		gasoline--;
 		break;
 	case OF_KEY_RIGHT:
 		playEngineSound();
 		bSoundPlaying = true;
 		emitter.sys->reset();
-		impulseForce->set(ofVec3f(0, 0, 0)); //Reset the impulse force
+		impulseForce->set(ofVec3f(0, 0, 0)); //Reset impulse
 		thrustForceLunar->set(ofVec3f(3, 0, 0));
 		if (!bCollision) { turbForce->set(ofVec3f(-2, -2, -2), ofVec3f(2, 2, 2)); }
 		engineEmitter.sys->reset();
 		engineEmitter.start();
 		engineEmitter2.sys->reset();
 		engineEmitter2.start();
+		gasoline--;
 		break;
 	default:
 		break;
@@ -646,9 +769,7 @@ void ofApp::keyPressed(int key) {
 void ofApp::toggleWireframeMode() {
 	bWireframe = !bWireframe;
 }
-void ofApp::toggleDrawBoundingBox() {
-	bDrawBounding = !bDrawBounding;
-}
+
 
 
 void ofApp::toggleSelectTerrain() {
@@ -743,18 +864,7 @@ void ofApp::drawBox(const Box &box) {
 	float d = size.z();
 	ofDrawBox(p, w, h, d);
 }
-//draw a box that is moving
-void ofApp::drawMovingBox(const Box &box, const ofVec3f &offset) {
-	Vector3 min = box.parameters[0];
-	Vector3 max = box.parameters[1];
-	Vector3 size = max - min;
-	Vector3 center = size / 2 + min;
-	ofVec3f p = ofVec3f(center.x() + offset.x, center.y() + offset.y, center.z() + offset.z);
-	float w = size.x();
-	float h = size.y();
-	float d = size.z();
-	ofDrawBox(p, w, h, d);
-}
+
 // return a Mesh Bounding Box for the entire Mesh
 //
 Box ofApp::meshBounds(const ofMesh & mesh) {
@@ -912,8 +1022,32 @@ void ofApp::initLightingAndMaterials() {
 
 	keyLight.rotate(-90, ofVec3f(1, 0, 0));
 	keyLight.rotate(-90, ofVec3f(0, 1, 0));
-	keyLight.setPosition(0, 10, 1);
+	keyLight.setPosition(30, 200, 0);
 
+	fillLight.setup();
+	fillLight.enable();
+	fillLight.setSpotlight();
+	fillLight.setScale(.05);
+	fillLight.setSpotlightCutOff(15);
+	fillLight.setAttenuation(2, .001, .001);
+	fillLight.setAmbientColor(ofFloatColor(150, 250, 250));
+	fillLight.setDiffuseColor(ofFloatColor(150, 250, 250));
+	fillLight.setSpecularColor(ofFloatColor(150, 250, 250));
+	fillLight.rotate(-10, ofVec3f(1, 0, 0));
+	fillLight.rotate(-45, ofVec3f(0, 1, 0));
+	fillLight.setPosition(30, 200, 0);
+
+	rimLight.setup();
+	rimLight.enable();
+	rimLight.setSpotlight();
+	rimLight.setScale(.05);
+	rimLight.setSpotlightCutOff(30);
+	rimLight.setAttenuation(.2, .001, .001);
+	rimLight.setAmbientColor(ofFloatColor(150, 250, 250));
+	rimLight.setDiffuseColor(ofFloatColor(150, 250, 250));
+	rimLight.setSpecularColor(ofFloatColor(150, 250, 250));
+	rimLight.rotate(180, ofVec3f(0, 1, 0));
+	rimLight.setPosition(30, 200, 0);
 	static float ambient[] =
 	{ .5f, .5f, .5, 1.0f };
 	static float diffuse[] =
