@@ -151,7 +151,7 @@ void ofApp::setup() {
 
 	///////////////////Set up emitters
 	
-	//Create forces
+	//Create forces Justin
 	turbForce = new TurbulenceForce(ofVec3f(0, 0, 0), ofVec3f(0, 0, 0));
 	gravityForce = new GravityForce(ofVec3f(0, -gravity, 0));
 	thrustForceLunar = new ThrustForce(ofVec3f(0, 0, 0));
@@ -246,37 +246,37 @@ void ofApp::update() {
 		engineEmitter2.setPosition(lander.getPosition() + ofVec3f(4, -3, 2));
 		engineEmitter2.update();
 
-		//check bottom collision if lander is moving downwards
+		//check bottom collision if lander is moving downwards Justin
 		if (emitter.sys->particles[0].velocity.y < .6)
 		{
 			checkCollision();
 		}
 
-		//Check front bumper
+		//Check front bumper Justin
 		if (emitter.sys->particles[0].velocity.x < -0.6)
 		{
 			checkFrontCollision();
 		}
 
-		//Check back bumper
+		//Check back bumper Justin
 		if (emitter.sys->particles[0].velocity.x > .6)
 		{
 			checkBackCollision();
 		}
 
-		//Check left bumper
+		//Check left bumper Justin
 		if (emitter.sys->particles[0].velocity.z < -0.6)
 		{
 			checkLeftCollision();
 		}
 
-		//Check right bumper
+		//Check right bumper Justin
 		if (emitter.sys->particles[0].velocity.z > 0.6)
 		{
 			checkRightCollision();
 		}
 
-		//Update camera position
+		//Update camera position Justin
 		trackingCam.lookAt(lander.getPosition());
 		downCam.setPosition(lander.getPosition());
 		downCam.lookAt(lander.getPosition() * ofVec3f(1, 0, 1));
@@ -291,7 +291,7 @@ void ofApp::update() {
 
 //---------------------------------------------------------------------------------------------------------------------------
 
-// load vertex buffer in preparation for rendering
+// load vertex buffer in preparation for rendering Justin
 void ofApp::loadVbo() {
 	if (engineEmitter.sys->particles.size() < 1) return;
 
@@ -505,7 +505,7 @@ void ofApp::drawAxis(ofVec3f location) {
 	ofPopMatrix();
 }
 
-//Check if a collision occured between a box and lander
+//Check if a collision occured between a box and lander Justin
 void ofApp:: checkCollision()
 {
 	Vector3 center = landerBox.center();
@@ -547,7 +547,7 @@ void ofApp:: checkCollision()
 	
 }
 
-//check for front collision
+//check for front collision Justin
 void ofApp::checkFrontCollision()
 {
 	Vector3 center = landerBox.center();
@@ -564,7 +564,7 @@ void ofApp::checkFrontCollision()
 
 }
 
-//check for back collision
+//check for back collision Justin
 void ofApp::checkBackCollision()
 {
 	Vector3 center = landerBox.center();
@@ -583,7 +583,7 @@ void ofApp::checkBackCollision()
 	
 }
 
-//check for right collision
+//check for right collision Justin
 void ofApp::checkRightCollision()
 {
 	Vector3 center = landerBox.center();
@@ -600,7 +600,7 @@ void ofApp::checkRightCollision()
 
 }
 
-//Check for left collision of lander
+//Check for left collision of lander Justin
 void ofApp::checkLeftCollision()
 {
 	Vector3 center = landerBox.center();
@@ -846,6 +846,7 @@ void ofApp::mousePressed(int x, int y, int button) {
 
 }
 
+//Justin
 void ofApp::playEngineSound() {
 	if (bSoundPlaying) return;
 	if (!engineSound.isPlaying()) engineSound.play();
@@ -887,35 +888,7 @@ Box ofApp::meshBounds(const ofMesh & mesh) {
 	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 }
 
-void ofApp::subDivideBox8(const Box &box, vector<Box> & boxList) {
-	Vector3 min = box.parameters[0];
-	Vector3 max = box.parameters[1];
-	Vector3 size = max - min;
-	Vector3 center = size / 2 + min;
-	float xdist = (max.x() - min.x()) / 2;
-	float ydist = (max.y() - min.y()) / 2;
-	float zdist = (max.z() - min.z()) / 2;
-	Vector3 h = Vector3(0, ydist, 0);
 
-	//  generate ground floor
-	//
-	Box b[8];
-	b[0] = Box(min, center);
-	b[1] = Box(b[0].min() + Vector3(xdist, 0, 0), b[0].max() + Vector3(xdist, 0, 0));
-	b[2] = Box(b[1].min() + Vector3(0, 0, zdist), b[1].max() + Vector3(0, 0, zdist));
-	b[3] = Box(b[2].min() + Vector3(-xdist, 0, 0), b[2].max() + Vector3(-xdist, 0, 0));
-
-	boxList.clear();
-	for (int i = 0; i < 4; i++)
-		boxList.push_back(b[i]);
-
-	// generate second story
-	//
-	for (int i = 4; i < 8; i++) {
-		b[i] = Box(b[i - 4].min() + h, b[i - 4].max() + h);
-		boxList.push_back(b[i]);
-	}
-}
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
@@ -1012,7 +985,7 @@ void ofApp::gotMessage(ofMessage msg) {
 //
 void ofApp::initLightingAndMaterials() {
 
-	//setting up lights
+	//setting up lights Justin
 	keyLight.setup();
 	keyLight.enable();
 	keyLight.setAreaLight(2, 5);
