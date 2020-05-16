@@ -30,16 +30,16 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 	void drawAxis(ofVec3f);
-	void initLightingAndMaterials();
+	void initLightingAndMaterials(); //Justin
 	void savePicture();
 	void toggleWireframeMode();
 	void togglePointsDisplay();
-	void checkCollision(); 
-	void checkFrontCollision(); 
-	void checkBackCollision(); 
-	void checkLeftCollision(); 
-	void checkRightCollision();
-	void playEngineSound(); 
+	void checkCollision();  //Justinv
+	void checkFrontCollision(); //Justin
+	void checkBackCollision(); //Justin
+	void checkLeftCollision(); //Justin
+	void checkRightCollision();//Justin
+	void playEngineSound(); //Justin
 	bool bSoundPlaying; 
 	ofSoundPlayer engineSound;
 	ofSoundPlayer bgSound;
@@ -58,13 +58,13 @@ public:
 	bool  doPointSelection();
 	void drawBox(const Box &box);
 	Box meshBounds(const ofMesh &);
-	void subDivideBox8(const Box &b, vector<Box> & boxList);
+	
 
 	bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 
-	Box boundingBox , boundingBox2, boundingBox3;
-	Box landerBox;         
-	ofxAssimpModelLoader  rover, terrain;
+	Box boundingBox , boundingBox2, boundingBox3; //Justin
+	Box landerBox;         //Justin
+	ofxAssimpModelLoader  rover, terrain;//Justin
 
 	bool bPointSelected;
 	bool bRoverLoaded;
@@ -108,18 +108,18 @@ public:
 	bool bBackgroundLoaded = false;
 	bool bLanderLoaded = false;
 
-	ParticleEmitter emitter;
-	ParticleEmitter engineEmitter;
-	ParticleEmitter engineEmitter2;
-	TurbulenceForce* turbForce;
-	GravityForce* gravityForce;
-	ThrustForce* thrustForceLunar;
+	ParticleEmitter emitter;//Justin
+	ParticleEmitter engineEmitter;//Justin
+	ParticleEmitter engineEmitter2;//Justin
+	TurbulenceForce* turbForce;//Justin
+	GravityForce* gravityForce;//Justin
+	ThrustForce* thrustForceLunar;//Justin
 
-	TurbulenceForce* turbForce2;
-	GravityForce* gravityForce2;
-	ThrustForce* thrustForceLunar2;
+	TurbulenceForce* turbForce2;//Justin
+	GravityForce* gravityForce2;//Justin
+	ThrustForce* thrustForceLunar2;//Justin
 
-	ImpulseForce* impulseForce;
+	ImpulseForce* impulseForce;//Justin
 
 	float gasoline;
 	bool bGameActive;
