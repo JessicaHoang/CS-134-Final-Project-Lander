@@ -18,8 +18,8 @@ public:
 	void update();
 	void draw();
 
-	void keyPressed(int key);
-	void keyReleased(int key);
+	void keyPressed(int key); //Jessica Hoang
+	void keyReleased(int key); //Jessica Hoang
 	void mouseMoved(int x, int y);
 	void mouseDragged(int x, int y, int button);
 	void mousePressed(int x, int y, int button);
@@ -96,9 +96,9 @@ public:
 	ofLight fillLight;
 	ofImage backgroundImage;
 	ofCamera *theCam = NULL;
-	ofCamera trackingCam; 
-	ofCamera frontCam;
-	ofCamera downCam;
+	ofCamera trackingCam;  	//Jessica Hoang
+	ofCamera frontCam;	//Jessica Hoang
+	ofCamera downCam;	//Jessica Hoang
 
 	bool bAltKeyDown;
 	bool bCtrlKeyDown;
@@ -121,15 +121,16 @@ public:
 
 	ImpulseForce* impulseForce;//Justin
 
+	//Jessica Hoang
 	float gasoline;
 	bool bGameActive;
 	bool showLostMessage;
 	bool win;
 	bool showWinMessage;
 
-	ofxPanel gui;
-	ofxFloatSlider gravity;
-	ofxFloatSlider restitution;
+	ofxPanel gui; //Jessica Hoang
+	ofxFloatSlider gravity; //Jessica Hoang
+	ofxFloatSlider restitution; //Jessica Hoang
 	int score;
 	float temp;
 };
