@@ -177,19 +177,19 @@ void Octree::subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int 
 	}
 
 }
-
+// Jessica Hoang
 bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
 
 	//See if it intersects
 	if (node.box.intersect(ray, -10000, 10000)) {
 
-		//if it’s a leaf node, return it
+		//if itâ€™s a leaf node, return it
 		if (node.children.size() == 0) {
 			nodeRtn = node;
 			return true;
 		}
 		else {
-			//Look deeper if it’s not a leaf node
+			//Look deeper if itâ€™s not a leaf node
 			for (int i = 0; i < node.children.size(); i++) {
 				//if (node.children[i].box.intersect(ray, -10000, 10000)) {
 				intersect(ray, node.children[i], nodeRtn);
@@ -203,18 +203,19 @@ bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn
 
 }
 
+// Justin 
 bool Octree::pointIntersect(ofVec3f &point, TreeNode & node, TreeNode & nodeRtn) {
 
 	//See if the point intersects with the box
 	if (node.box.pointInside(point)) {
 
-		//if it’s a leaf node, return it
+		//if itâ€™s a leaf node, return it
 		if (node.children.size() == 0) {
 			nodeRtn = node;
 			return true;
 		}
 		else {
-			//Look deeper if it’s not a leaf node
+			//Look deeper if itâ€™s not a leaf node
 			for (int i = 0; i < node.children.size(); i++) {
 				pointIntersect(point, node.children[i], nodeRtn);
 			}
